@@ -1,3 +1,5 @@
+# after  Schottstaedt, 1977; natural instrument tones
+
 import numpy
 import slab
 from matplotlib import pyplot as plt
