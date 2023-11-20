@@ -1,4 +1,4 @@
-
+# after  Schottstaedt, 1977; natural instrument tones
 import tdt
 from win32com.client import Dispatch
 import slab
