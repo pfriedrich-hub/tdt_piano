@@ -1,60 +1,37 @@
 import tdt
 from win32com.client import Dispatch
 import slab
-import numpy as np
+import numpy
 import os
 from pathlib import Path
+from matplotlib import pyplot as plt
 path = Path.cwd()
-
+# fs = 48828
+fs = 24414
 proc = Dispatch('RPco.X')
-
 proc.ConnectRM1('USB', 1)  # connect processor
 proc.ClearCOF() # remove previous program from processor
-proc.LoadCOF(path / 'random_access_test.rcx')  # load target program
-
-proc.SetTagVal('size', s_samples) # write a single val to a tag
-proc.WriteTagV('signal', 0, combined_signal) # specify buffer array using n_samples of sound (inserts data)
-#a=proc.ReadTagV('s0', 0, s0.n_samples)
-proc.SoftTrg(1)  # buffer trigger (read and play stim)
+proc.LoadCOF(path / 'piano.rcx')  # load target program
+proc.SetTagVal('f0', 220)  # write a single val to a tag
 proc.Run()  # start processor - play sound
-proc.Halt()
 
-# specify directory
-# data
-signals=[] # create empty list for all wav files
-# Iterate through files from s_0 to s_7
-for i in range(8):
-    file_path = os.path.join(dir_path, f's_{i}.wav')
-    if os.path.exists(file_path):
-        s = slab.Binaural(data=file_path)
-        signals.append(s.data[:, 0])
+duration = 1
+n_samples = duration * fs
+t = numpy.linspace(0, duration, n_samples)
 
-# Combine all signals
-combined_signal = np.concatenate(signals)
+data = numpy.array(proc.ReadTagV('Data', 0, n_samples))
+plt.figure()
+plt.plot(t, data)
+tone = slab.Sound(data, samplerate=fs)
+tone.spectrum()
+tone.waveform()
 
-# get len of combined signal
-s_samples = len(combined_signal)
-
-proc.SetTagVal('size', s_samples) # write a single val to a tag
-proc.WriteTagV('signal', 0, combined_signal) # specify buffer array using n_samples of sound (inserts data)
-#a=proc.ReadTagV('s0', 0, s0.n_samples)
-proc.SoftTrg(1)  # buffer trigger (read and play stim)
-proc.Run()  # start processor - play sound
-proc.Halt()
-
-ild = slab.Binaural.azimuth_to_ild(45) # degrees azimuth
-# -9.12  # correct ILD in dB
-signal=signal.ild(ild)  # apply the ILD
+# data1 = numpy.array(proc.ReadTagV('Data1', 0, n_samples))
+# plt.figure()
+# plt.plot(t, data1)
+# tone1 = slab.Sound(data1, samplerate=fs)
+# tone1.spectrum()
 
 
-signal.play()
-
-proc.SetTagVal('isi_in', isi)  # send initial isi to tdt processor
-
-proc.SoftTrg(3)  # pulse train trigger #todo make better buffer loop
-
-proc.SetTagVal('isi', isi)  # write ISI in rcx pulsetrain tag
-
-proc.SoftTrg(2)
 proc.Halt()
 
